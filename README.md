@@ -1,5 +1,7 @@
 # Inflight
 
+[![Build Status](https://travis-ci.org/odlp/inflight.svg?branch=master)](https://travis-ci.org/odlp/inflight)
+
 Inflight finds the ID of your currently started Pivotal Tracker story and adds it to your commit message. The story is located using the Git author's email.
 
 ## Background
