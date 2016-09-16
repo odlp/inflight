@@ -1,0 +1,3 @@
+package: github.com/odlp/inflight
+import:
+- package: github.com/odlp/go-tracker
