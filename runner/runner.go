@@ -44,7 +44,7 @@ func (r Runner) Exec() {
 		os.Exit(1)
 	}
 
-	outputText := fmt.Sprintf("[%d]\n", s.ID)
+	outputText := fmt.Sprintf("[#%d]\n", s.ID)
 	r.Writer.WriteToFile(r.Config.OutputPath, outputText)
 }
 
