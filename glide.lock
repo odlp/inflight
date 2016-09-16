@@ -1,6 +1,10 @@
-hash: 6db9917a0b043dcb5ab0bf145d3ef25de4f0ffe939d3d2268e8671fb760281d7
-updated: 2016-09-16T18:44:41.271891057+01:00
+hash: 908063a6639b03f300c8dc5715c362145d61a26390fcf86432bd496244b3201f
+updated: 2016-09-16T20:23:14.669871318+01:00
 imports:
 - name: github.com/odlp/go-tracker
   version: 801a12263cbb36a9b9beafbef4e01e5a7a81a158
+- name: github.com/onsi/ginkgo
+  version: 46c87bb63f2d8d62b3076873b7a84da124da72ce
+- name: github.com/onsi/gomega
+  version: d59fa0ac68bb5dd932ee8d24eed631cdd519efc3
 testImports: []
