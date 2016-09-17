@@ -4,6 +4,29 @@
 
 Inflight finds the ID of your currently started Pivotal Tracker story and adds it to your commit message. The story is located using the Git author's email.
 
+Given you've started a story:
+
+![Tracker commit example](assets/started-story-example.png)
+
+When you're ready to commit:
+
+```sh
+git commit
+```
+
+The story ID is ready and waiting in your commit message:
+
+```
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+# On branch master
+# Changes to be committed:
+#       new file:   <% some changes %>
+#
+[#89688392]
+```
+
 ## Background
 
 Pivotal Tracker & Github allow you to easily [link commits to your tracker stories](http://www.pivotaltracker.com/blog/guide-githubs-service-hook-tracker/). When you craft a commit message like this:
@@ -16,7 +39,7 @@ My words of wisdom
 
 You'll see this commit linked in the activity of your story:
 
-![Tracker commit example](tracker-commit-example.png)
+![Tracker commit example](assets/tracker-commit-example.png)
 
 
 ## Installation
@@ -50,6 +73,10 @@ You'll see this commit linked in the activity of your story:
     ```sh
     chmod +x .git/hooks/prepare-commit-msg
     ```
+
+## Caveats
+
+- The Git author's email must match the email used for Pivotal Tracker
 
 ## Todo
 
