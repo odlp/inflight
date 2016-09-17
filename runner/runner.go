@@ -3,17 +3,9 @@ package runner
 import (
 	"fmt"
 	"os"
-	"strconv"
 
 	"github.com/odlp/inflight/project"
 )
-
-type Config struct {
-	OutputPath       string
-	GitAuthorEmail   string
-	TrackerAPIToken  string
-	TrackerProjectID int
-}
 
 type Runner struct {
 	Project project.Project
@@ -40,20 +32,6 @@ func (r Runner) Exec() {
 
 	outputText := fmt.Sprintf("[#%d]\n", s.ID)
 	r.Writer.WriteToFile(r.Config.OutputPath, outputText)
-}
-
-const EnvGitAuthorEmail = "GIT_AUTHOR_EMAIL"
-const EnvTrackerAPIToken = "TRACKER_API_TOKEN"
-const EnvTrackerProjectID = "TRACKER_PROJECT_ID"
-
-func configWithOutputPath(outputPath string) Config {
-	projectID, _ := strconv.Atoi(os.Getenv(EnvTrackerProjectID))
-	return Config{
-		OutputPath:       outputPath,
-		GitAuthorEmail:   os.Getenv(EnvGitAuthorEmail),
-		TrackerAPIToken:  os.Getenv(EnvTrackerAPIToken),
-		TrackerProjectID: projectID,
-	}
 }
 
 func gracefulExitIfError(err error) {
