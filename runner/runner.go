@@ -4,12 +4,24 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/odlp/go-tracker"
 	"github.com/odlp/inflight/project"
 )
 
+//go:generate counterfeiter . ProjectInterface
+type ProjectInterface interface {
+	FindUserByEmail(email string) (tracker.ProjectMembership, error)
+	FindCurrentStory(member tracker.ProjectMembership) (tracker.Story, error)
+}
+
+//go:generate counterfeiter . WriterInterface
+type WriterInterface interface {
+	WriteToFile(filePath string, text string)
+}
+
 type Runner struct {
-	Project project.Project
-	Writer  Writer
+	Project ProjectInterface
+	Writer  WriterInterface
 	Config  Config
 }
 
