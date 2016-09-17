@@ -8,5 +8,9 @@ install:
   - curl https://glide.sh/get | sh
   - glide install
   - go get github.com/onsi/ginkgo/ginkgo
+  - go get github.com/mattn/goveralls
 
 script: ./scripts/test
+
+after_success:
+  - ./scripts/coveralls

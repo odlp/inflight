@@ -1,0 +1,4 @@
+#!/bin/bash
+
+find . -name "*.coverprofile" -exec grep -v mode: {} >> all.coverprofile \;
+goveralls -coverprofile=all.coverprofile -repotoken=$COVERALLS_TOKEN
