@@ -81,7 +81,4 @@ You'll see this commit linked in the activity of your story:
 ## Todo
 
 - Add interactive git hook setup
-- Be graceful and don't prevent commits if an error occurs. E.g.
-    - The user has no started stories
-    - The API is down or keys are misconfigured
 - Cache the author's Tracker initials to make the hook faster (fewer requests)

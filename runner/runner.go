@@ -33,16 +33,10 @@ func NewRunner(outputPath string) Runner {
 
 func (r Runner) Exec() {
 	u, err := r.Project.FindUserByEmail(r.Config.GitAuthorEmail)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	gracefulExitIfError(err)
 
 	s, err := r.Project.FindCurrentStory(u)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	gracefulExitIfError(err)
 
 	outputText := fmt.Sprintf("[#%d]\n", s.ID)
 	r.Writer.WriteToFile(r.Config.OutputPath, outputText)
@@ -59,5 +53,12 @@ func configWithOutputPath(outputPath string) Config {
 		GitAuthorEmail:   os.Getenv(EnvGitAuthorEmail),
 		TrackerAPIToken:  os.Getenv(EnvTrackerAPIToken),
 		TrackerProjectID: projectID,
+	}
+}
+
+func gracefulExitIfError(err error) {
+	if err != nil {
+		fmt.Printf("Inflight: %s\n", err.Error())
+		os.Exit(0)
 	}
 }

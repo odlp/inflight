@@ -8,7 +8,7 @@ import (
 	"github.com/odlp/inflight/runner"
 )
 
-const currentVersion = "0.1.0"
+const currentVersion = "0.1.1"
 
 func main() {
 	var displayVersion = flag.Bool("version", false, "view version information")
@@ -21,7 +21,7 @@ func main() {
 	}
 
 	if outputPath == nil || *outputPath == "" {
-		fmt.Println("Output location for commit message required.")
+		fmt.Println("Inflight: Output location for commit message required")
 		os.Exit(1)
 	}
 
