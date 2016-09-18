@@ -1,6 +1,8 @@
 # Inflight
 
+[![GitHub version](https://badge.fury.io/gh/odlp%2Finflight.svg)](https://badge.fury.io/gh/odlp%2Finflight)
 [![Build Status](https://travis-ci.org/odlp/inflight.svg?branch=master)](https://travis-ci.org/odlp/inflight)
+[![Coverage Status](https://coveralls.io/repos/github/odlp/inflight/badge.svg?branch=master)](https://coveralls.io/github/odlp/inflight?branch=master)
 
 Inflight finds the ID of your currently started Pivotal Tracker story and adds it to your commit message. The story is located using the Git author's email.
 
