@@ -14,6 +14,11 @@ type ProjectInterface interface {
 	FindCurrentStory(member tracker.ProjectMembership) (tracker.Story, error)
 }
 
+//go:generate counterfeiter . GrepInterface
+type GrepInterface interface {
+	FileAlreadyHasStoryID(filePath string) bool
+}
+
 //go:generate counterfeiter . WriterInterface
 type WriterInterface interface {
 	WriteToFile(filePath string, text string)
@@ -22,6 +27,7 @@ type WriterInterface interface {
 type Runner struct {
 	Project ProjectInterface
 	Writer  WriterInterface
+	Grepper GrepInterface
 	Config  Config
 }
 
@@ -31,11 +37,16 @@ func NewRunner(outputPath string) Runner {
 	return Runner{
 		Project: p,
 		Writer:  Writer{},
+		Grepper: Grepper{},
 		Config:  c,
 	}
 }
 
 func (r Runner) Exec() {
+	if r.Grepper.FileAlreadyHasStoryID(r.Config.OutputPath) {
+		return
+	}
+
 	u, err := r.Project.FindUserByEmail(r.Config.GitAuthorEmail)
 	gracefulExitIfError(err)
 

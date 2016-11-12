@@ -19,8 +19,10 @@ var _ = Describe("NewRunner", func() {
 	})
 
 	It("loads the config from the environment", func() {
-		r := NewRunner("./tmp/foo.txt")
+		outputPath := "./tmp/foo.txt"
+		r := NewRunner(outputPath)
 
+		Expect(r.Config.OutputPath).To(Equal(outputPath))
 		Expect(r.Config.GitAuthorEmail).To(Equal("a@example.com"))
 		Expect(r.Config.TrackerAPIToken).To(Equal("api-token"))
 		Expect(r.Config.TrackerProjectID).To(Equal(123))
@@ -33,6 +35,7 @@ var _ = Describe("Exec", func() {
 		c           Config
 		fakeProject runnerfakes.FakeProjectInterface
 		fakeWriter  runnerfakes.FakeWriterInterface
+		fakeGrepper runnerfakes.FakeGrepInterface
 		user        tracker.ProjectMembership
 		story       tracker.Story
 	)
@@ -40,48 +43,70 @@ var _ = Describe("Exec", func() {
 	BeforeEach(func() {
 		fakeProject = runnerfakes.FakeProjectInterface{}
 		fakeWriter = runnerfakes.FakeWriterInterface{}
+		fakeGrepper = runnerfakes.FakeGrepInterface{}
 
 		c = Config{
 			GitAuthorEmail: "a@example.com",
 			OutputPath:     "./tmp/example.txt",
 		}
+	})
 
+	JustBeforeEach(func() {
 		r = Runner{
 			Project: &fakeProject,
 			Writer:  &fakeWriter,
+			Grepper: &fakeGrepper,
 			Config:  c,
 		}
-
-		user = tracker.ProjectMembership{
-			Person: tracker.Person{Initials: "DV"},
-		}
-		fakeProject.FindUserByEmailReturns(user, nil)
-
-		story = tracker.Story{
-			ID: 123,
-		}
-		fakeProject.FindCurrentStoryReturns(story, nil)
 
 		r.Exec()
 	})
 
-	It("finds the user", func() {
-		Expect(fakeProject.FindUserByEmailCallCount()).To(Equal(1))
-		Expect(fakeProject.FindUserByEmailArgsForCall(0)).To(Equal(c.GitAuthorEmail))
+	Context("when story ID is needed", func() {
+		BeforeEach(func() {
+			fakeGrepper.FileAlreadyHasStoryIDReturns(false)
+
+			user = tracker.ProjectMembership{
+				Person: tracker.Person{Initials: "DV"},
+			}
+			fakeProject.FindUserByEmailReturns(user, nil)
+
+			story = tracker.Story{
+				ID: 123,
+			}
+			fakeProject.FindCurrentStoryReturns(story, nil)
+		})
+
+		It("fetches the user", func() {
+			Expect(fakeProject.FindUserByEmailCallCount()).To(Equal(1))
+			Expect(fakeProject.FindUserByEmailArgsForCall(0)).To(Equal(c.GitAuthorEmail))
+		})
+
+		It("fetches the current story", func() {
+			Expect(fakeProject.FindCurrentStoryCallCount()).To(Equal(1))
+			Expect(fakeProject.FindCurrentStoryArgsForCall(0)).To(Equal(user))
+		})
+
+		It("passes the story ID to be written", func() {
+			Expect(fakeWriter.WriteToFileCallCount()).To(Equal(1))
+
+			capturedOutputPath, capturedOutputText := fakeWriter.WriteToFileArgsForCall(0)
+
+			Expect(capturedOutputPath).To(Equal(c.OutputPath))
+			Expect(capturedOutputText).To(Equal("[#123]\n"))
+		})
 	})
 
-	It("finds the current story", func() {
-		Expect(fakeProject.FindCurrentStoryCallCount()).To(Equal(1))
-		Expect(fakeProject.FindCurrentStoryArgsForCall(0)).To(Equal(user))
-	})
+	Describe("when story ID is already present", func() {
+		BeforeEach(func() {
+			fakeGrepper.FileAlreadyHasStoryIDReturns(true)
+		})
 
-	It("passes the story ID to be written", func() {
-		Expect(fakeWriter.WriteToFileCallCount()).To(Equal(1))
-
-		capturedOutputPath, capturedOutputText := fakeWriter.WriteToFileArgsForCall(0)
-
-		Expect(capturedOutputPath).To(Equal(c.OutputPath))
-		Expect(capturedOutputText).To(Equal("[#123]\n"))
+		It("does not fetch the story ID", func() {
+			Expect(fakeProject.FindUserByEmailCallCount()).To(Equal(0))
+			Expect(fakeProject.FindCurrentStoryCallCount()).To(Equal(0))
+			Expect(fakeWriter.WriteToFileCallCount()).To(Equal(0))
+		})
 	})
 
 })
