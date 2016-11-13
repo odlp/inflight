@@ -26,7 +26,9 @@ The story ID is ready and waiting in your commit message:
 # Changes to be committed:
 #       new file:   <% some changes %>
 #
+
 [#89688392]
+
 ```
 
 ## Background
@@ -46,7 +48,9 @@ You'll see this commit linked in the activity of your story:
 
 ## Installation
 
-1. Install via `go get`:
+1. [Download the latest release](https://github.com/odlp/inflight/releases) and place the binary on your path, e.g. `/usr/local/bin/inflight`
+
+    Alternatively if you have Go installed, run:
 
     ```sh
     go get github.com/odlp/inflight
@@ -54,7 +58,7 @@ You'll see this commit linked in the activity of your story:
 
 2. `cd` to the repo you'd like to configure.
 
-3. Create a prepare commit message hook:
+3. Create a Git prepare commit message hook:
 
     ```sh
     touch .git/hooks/prepare-commit-msg
@@ -70,7 +74,7 @@ You'll see this commit linked in the activity of your story:
     inflight -o "$1"
     ```
 
-5. Make it executable:
+5. Make the hook executable:
 
     ```sh
     chmod +x .git/hooks/prepare-commit-msg
