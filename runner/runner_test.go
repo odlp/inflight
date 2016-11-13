@@ -93,7 +93,7 @@ var _ = Describe("Exec", func() {
 			capturedOutputPath, capturedOutputText := fakeWriter.WriteToFileArgsForCall(0)
 
 			Expect(capturedOutputPath).To(Equal(c.OutputPath))
-			Expect(capturedOutputText).To(Equal("[#123]\n"))
+			Expect(capturedOutputText).To(Equal("\n[#123]\n\n"))
 		})
 	})
 

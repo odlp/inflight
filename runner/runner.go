@@ -53,8 +53,11 @@ func (r Runner) Exec() {
 	s, err := r.Project.FindCurrentStory(u)
 	gracefulExitIfError(err)
 
-	outputText := fmt.Sprintf("[#%d]\n", s.ID)
-	r.Writer.WriteToFile(r.Config.OutputPath, outputText)
+	r.Writer.WriteToFile(r.Config.OutputPath, formatStoryID(s.ID))
+}
+
+func formatStoryID(storyID int) string {
+	return fmt.Sprintf("\n[#%d]\n\n", storyID)
 }
 
 func gracefulExitIfError(err error) {
