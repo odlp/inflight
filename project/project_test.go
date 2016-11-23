@@ -16,44 +16,83 @@ var _ = Describe("Project", func() {
 	var (
 		p          project.Project
 		fakeClient projectfakes.FakeProjectClient
+		fakeCache  projectfakes.FakeUserCacheInterface
 	)
 
 	BeforeEach(func() {
 		fakeClient = projectfakes.FakeProjectClient{}
+		fakeCache = projectfakes.FakeUserCacheInterface{}
 		p = project.Project{
 			Client: &fakeClient,
+			Cache:  &fakeCache,
 		}
 	})
 
 	Describe("FindUserByEmail", func() {
-		It("returns the first member with a matching email", func() {
-			user1 := createUser("a@example.com")
-			user2 := createUser("b@example.com")
-			user3 := createUser("c@example.com")
-			users := []tracker.ProjectMembership{user1, user2, user3}
+		Context("user is not cached", func() {
+			BeforeEach(func() {
+				fakeCache.TryFindUserReturns(nil)
+			})
 
-			fakeClient.ProjectMembershipsReturns(users, nil)
+			It("returns the first member with a matching email", func() {
+				user1 := createUser("a@example.com")
+				user2 := createUser("b@example.com")
+				user3 := createUser("c@example.com")
+				users := []tracker.ProjectMembership{user1, user2, user3}
 
-			foundUser, err := p.FindUserByEmail("b@example.com")
+				fakeClient.ProjectMembershipsReturns(users, nil)
 
-			Expect(err).ToNot(HaveOccurred())
-			Expect(foundUser).To(Equal(user2))
-		})
+				foundUser, err := p.FindUserByEmail("b@example.com")
 
-		Context("user cannot be found", func() {
-			It("returns an error", func() {
-				_, err := p.FindUserByEmail("ghost@example.com")
-				Expect(err).To(MatchError("Unable to find 'ghost@example.com' in project members"))
+				Expect(err).ToNot(HaveOccurred())
+				Expect(foundUser).To(Equal(user2))
+			})
+
+			It("caches the user for next time", func() {
+				expectedUser := createUser("a@example.com")
+				users := []tracker.ProjectMembership{expectedUser}
+
+				fakeClient.ProjectMembershipsReturns(users, nil)
+				_, err := p.FindUserByEmail(expectedUser.Person.Email)
+
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(fakeCache.CacheFoundUserCallCount()).To(Equal(1))
+
+				emailToCache, initialsToCache := fakeCache.CacheFoundUserArgsForCall(0)
+				Expect(emailToCache).To(Equal(expectedUser.Person.Email))
+				Expect(initialsToCache).To(Equal(expectedUser.Person.Initials))
+			})
+
+			Context("user cannot be found", func() {
+				It("returns an error", func() {
+					_, err := p.FindUserByEmail("ghost@example.com")
+					Expect(err).To(MatchError("Unable to find 'ghost@example.com' in project members"))
+				})
+			})
+
+			Context("project client returns an error", func() {
+				It("propagates the error", func() {
+					expectedError := fmt.Errorf("Oops")
+					fakeClient.ProjectMembershipsReturns([]tracker.ProjectMembership{}, expectedError)
+
+					_, err := p.FindUserByEmail("ghost@example.com")
+					Expect(err).To(Equal(expectedError))
+				})
 			})
 		})
 
-		Context("project client returns an error", func() {
-			It("propagates the error", func() {
-				expectedError := fmt.Errorf("Oops")
-				fakeClient.ProjectMembershipsReturns([]tracker.ProjectMembership{}, expectedError)
+		Context("user is cached", func() {
+			It("returns the cached user", func() {
+				cachedUser := createUser("cache-hit@example.com")
+				fakeCache.TryFindUserReturns(&cachedUser)
 
-				_, err := p.FindUserByEmail("ghost@example.com")
-				Expect(err).To(Equal(expectedError))
+				foundUser, err := p.FindUserByEmail("cache-hit@example.com")
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(foundUser).To(Equal(cachedUser))
+
+				Expect(fakeClient.ProjectMembershipsCallCount()).To(Equal(0))
 			})
 		})
 	})
@@ -114,15 +153,17 @@ var _ = Describe("Project", func() {
 
 var _ = Describe("NewProject", func() {
 	It("returns a project with a client wired up", func() {
-		p := project.NewProject("api-token", 123)
+		p := project.NewProject("api-token", 123, "./tmp/.inflight-cache")
 		Expect(p.Client).ToNot(BeNil())
+		Expect(p.Cache).ToNot(BeNil())
 	})
 })
 
 func createUser(email string) tracker.ProjectMembership {
 	return tracker.ProjectMembership{
 		Person: tracker.Person{
-			Email: email,
+			Email:    email,
+			Initials: "AB",
 		},
 	}
 }

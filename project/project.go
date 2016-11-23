@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/odlp/go-tracker"
+	tracker "github.com/odlp/go-tracker"
+	"github.com/odlp/inflight/util"
 )
 
 //go:generate counterfeiter . ProjectClient
@@ -13,25 +14,43 @@ type ProjectClient interface {
 	Stories(query tracker.StoriesQuery) ([]tracker.Story, tracker.Pagination, error)
 }
 
-type Project struct {
-	Client ProjectClient
+//go:generate counterfeiter . UserCacheInterface
+type UserCacheInterface interface {
+	TryFindUser(email string) *tracker.ProjectMembership
+	CacheFoundUser(email, initials string)
 }
 
-func NewProject(trackerAPIToken string, trackerProjectID int) Project {
+type Project struct {
+	Client ProjectClient
+	Cache  UserCacheInterface
+}
+
+func NewProject(trackerAPIToken string, trackerProjectID int, cachePath string) Project {
 	trackerClient := tracker.NewClient(trackerAPIToken)
 	projectClient := trackerClient.InProject(trackerProjectID)
-	return Project{Client: projectClient}
+	return Project{
+		Client: projectClient,
+		Cache: UserCache{
+			CachePath:  cachePath,
+			FileSystem: util.FileSystem{},
+		},
+	}
 }
 
 func (p Project) FindUserByEmail(email string) (tracker.ProjectMembership, error) {
-	members, err := p.Client.ProjectMemberships()
+	cachedMember := p.Cache.TryFindUser(email)
+	if cachedMember != nil {
+		return *cachedMember, nil
+	}
 
+	members, err := p.Client.ProjectMemberships()
 	if err != nil {
 		return tracker.ProjectMembership{}, err
 	}
 
 	for _, m := range members {
 		if m.Person.Email == email {
+			p.Cache.CacheFoundUser(m.Person.Email, m.Person.Initials)
 			return m, nil
 		}
 	}
@@ -48,7 +67,6 @@ func (p Project) FindCurrentStory(member tracker.ProjectMembership) (tracker.Sto
 	}
 
 	results, _, err := p.Client.Stories(q)
-
 	if err != nil {
 		return tracker.Story{}, err
 	}

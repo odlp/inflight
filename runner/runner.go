@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/odlp/go-tracker"
+	tracker "github.com/odlp/go-tracker"
 	"github.com/odlp/inflight/project"
+	"github.com/odlp/inflight/util"
 )
 
 //go:generate counterfeiter . ProjectInterface
@@ -19,26 +20,26 @@ type GrepInterface interface {
 	FileAlreadyHasStoryID(filePath string) bool
 }
 
-//go:generate counterfeiter . WriterInterface
-type WriterInterface interface {
+//go:generate counterfeiter . FileSystemInterface
+type FileSystemInterface interface {
 	WriteToFile(filePath string, text string)
 }
 
 type Runner struct {
-	Project ProjectInterface
-	Writer  WriterInterface
-	Grepper GrepInterface
-	Config  Config
+	Project    ProjectInterface
+	FileSystem FileSystemInterface
+	Grepper    GrepInterface
+	Config     Config
 }
 
 func NewRunner(outputPath string) Runner {
 	c := configWithOutputPath(outputPath)
-	p := project.NewProject(c.TrackerAPIToken, c.TrackerProjectID)
+	p := project.NewProject(c.TrackerAPIToken, c.TrackerProjectID, c.CachePath)
 	return Runner{
-		Project: p,
-		Writer:  Writer{},
-		Grepper: Grepper{},
-		Config:  c,
+		Project:    p,
+		FileSystem: util.FileSystem{},
+		Grepper:    Grepper{},
+		Config:     c,
 	}
 }
 
@@ -53,7 +54,7 @@ func (r Runner) Exec() {
 	s, err := r.Project.FindCurrentStory(u)
 	gracefulExitIfError(err)
 
-	r.Writer.WriteToFile(r.Config.OutputPath, formatStoryID(s.ID))
+	r.FileSystem.WriteToFile(r.Config.OutputPath, formatStoryID(s.ID))
 }
 
 func formatStoryID(storyID int) string {

@@ -8,7 +8,7 @@ import (
 	"github.com/odlp/inflight/runner"
 )
 
-const currentVersion = "0.2.0"
+const currentVersion = "0.3.0"
 
 func main() {
 	var displayVersion = flag.Bool("version", false, "view version information")

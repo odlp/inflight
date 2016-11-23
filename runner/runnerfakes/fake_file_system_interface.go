@@ -7,7 +7,7 @@ import (
 	"github.com/odlp/inflight/runner"
 )
 
-type FakeWriterInterface struct {
+type FakeFileSystemInterface struct {
 	WriteToFileStub        func(filePath string, text string)
 	writeToFileMutex       sync.RWMutex
 	writeToFileArgsForCall []struct {
@@ -18,7 +18,7 @@ type FakeWriterInterface struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeWriterInterface) WriteToFile(filePath string, text string) {
+func (fake *FakeFileSystemInterface) WriteToFile(filePath string, text string) {
 	fake.writeToFileMutex.Lock()
 	fake.writeToFileArgsForCall = append(fake.writeToFileArgsForCall, struct {
 		filePath string
@@ -31,19 +31,19 @@ func (fake *FakeWriterInterface) WriteToFile(filePath string, text string) {
 	}
 }
 
-func (fake *FakeWriterInterface) WriteToFileCallCount() int {
+func (fake *FakeFileSystemInterface) WriteToFileCallCount() int {
 	fake.writeToFileMutex.RLock()
 	defer fake.writeToFileMutex.RUnlock()
 	return len(fake.writeToFileArgsForCall)
 }
 
-func (fake *FakeWriterInterface) WriteToFileArgsForCall(i int) (string, string) {
+func (fake *FakeFileSystemInterface) WriteToFileArgsForCall(i int) (string, string) {
 	fake.writeToFileMutex.RLock()
 	defer fake.writeToFileMutex.RUnlock()
 	return fake.writeToFileArgsForCall[i].filePath, fake.writeToFileArgsForCall[i].text
 }
 
-func (fake *FakeWriterInterface) Invocations() map[string][][]interface{} {
+func (fake *FakeFileSystemInterface) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.writeToFileMutex.RLock()
@@ -51,7 +51,7 @@ func (fake *FakeWriterInterface) Invocations() map[string][][]interface{} {
 	return fake.invocations
 }
 
-func (fake *FakeWriterInterface) recordInvocation(key string, args []interface{}) {
+func (fake *FakeFileSystemInterface) recordInvocation(key string, args []interface{}) {
 	fake.invocationsMutex.Lock()
 	defer fake.invocationsMutex.Unlock()
 	if fake.invocations == nil {
@@ -63,4 +63,4 @@ func (fake *FakeWriterInterface) recordInvocation(key string, args []interface{}
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ runner.WriterInterface = new(FakeWriterInterface)
+var _ runner.FileSystemInterface = new(FakeFileSystemInterface)

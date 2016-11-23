@@ -1,1 +1,3 @@
 *.coverprofile
+cli
+tmp/

@@ -80,11 +80,11 @@ You'll see this commit linked in the activity of your story:
     chmod +x .git/hooks/prepare-commit-msg
     ```
 
-## Caveats
+## Limitations
 
-- The Git author's email must match the email used for Pivotal Tracker
+- The git author's email must match the email used for Pivotal Tracker.
+- If you have more than one story started then the most recently updated story ID will be picked.
 
 ## Todo
 
 - Add interactive git hook setup
-- Cache the author's Tracker initials to make the hook faster (fewer requests)

@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/odlp/go-tracker"
+	"github.com/odlp/inflight/project"
 	. "github.com/odlp/inflight/runner"
 	"github.com/odlp/inflight/runner/runnerfakes"
 
@@ -27,22 +28,31 @@ var _ = Describe("NewRunner", func() {
 		Expect(r.Config.TrackerAPIToken).To(Equal("api-token"))
 		Expect(r.Config.TrackerProjectID).To(Equal(123))
 	})
+
+	It("passes the cache path to the project cache", func() {
+		outputPath := "./tmp/foo.txt"
+		r := NewRunner(outputPath)
+
+		p := r.Project.(project.Project)
+		cache := p.Cache.(project.UserCache)
+		Expect(cache.CachePath).To(HaveSuffix("tmp/.inflight-cache"))
+	})
 })
 
 var _ = Describe("Exec", func() {
 	var (
-		r           Runner
-		c           Config
-		fakeProject runnerfakes.FakeProjectInterface
-		fakeWriter  runnerfakes.FakeWriterInterface
-		fakeGrepper runnerfakes.FakeGrepInterface
-		user        tracker.ProjectMembership
-		story       tracker.Story
+		r              Runner
+		c              Config
+		fakeProject    runnerfakes.FakeProjectInterface
+		fakeFileSystem runnerfakes.FakeFileSystemInterface
+		fakeGrepper    runnerfakes.FakeGrepInterface
+		user           tracker.ProjectMembership
+		story          tracker.Story
 	)
 
 	BeforeEach(func() {
 		fakeProject = runnerfakes.FakeProjectInterface{}
-		fakeWriter = runnerfakes.FakeWriterInterface{}
+		fakeFileSystem = runnerfakes.FakeFileSystemInterface{}
 		fakeGrepper = runnerfakes.FakeGrepInterface{}
 
 		c = Config{
@@ -53,10 +63,10 @@ var _ = Describe("Exec", func() {
 
 	JustBeforeEach(func() {
 		r = Runner{
-			Project: &fakeProject,
-			Writer:  &fakeWriter,
-			Grepper: &fakeGrepper,
-			Config:  c,
+			Project:    &fakeProject,
+			FileSystem: &fakeFileSystem,
+			Grepper:    &fakeGrepper,
+			Config:     c,
 		}
 
 		r.Exec()
@@ -88,9 +98,9 @@ var _ = Describe("Exec", func() {
 		})
 
 		It("passes the story ID to be written", func() {
-			Expect(fakeWriter.WriteToFileCallCount()).To(Equal(1))
+			Expect(fakeFileSystem.WriteToFileCallCount()).To(Equal(1))
 
-			capturedOutputPath, capturedOutputText := fakeWriter.WriteToFileArgsForCall(0)
+			capturedOutputPath, capturedOutputText := fakeFileSystem.WriteToFileArgsForCall(0)
 
 			Expect(capturedOutputPath).To(Equal(c.OutputPath))
 			Expect(capturedOutputText).To(Equal("\n[#123]\n\n"))
@@ -105,7 +115,7 @@ var _ = Describe("Exec", func() {
 		It("does not fetch the story ID", func() {
 			Expect(fakeProject.FindUserByEmailCallCount()).To(Equal(0))
 			Expect(fakeProject.FindCurrentStoryCallCount()).To(Equal(0))
-			Expect(fakeWriter.WriteToFileCallCount()).To(Equal(0))
+			Expect(fakeFileSystem.WriteToFileCallCount()).To(Equal(0))
 		})
 	})
 
