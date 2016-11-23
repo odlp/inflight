@@ -74,6 +74,8 @@ You'll see this commit linked in the activity of your story:
     inflight -o "$1"
     ```
 
+    > Your Pivotal Tracker API key is located in [Your Profile](https://www.pivotaltracker.com/profile). The project ID is visible in the address bar of your browser whilst viewing the project.
+
 5. Make the hook executable:
 
     ```sh
